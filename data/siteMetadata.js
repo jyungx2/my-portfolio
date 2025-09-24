@@ -1,18 +1,18 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Next.js Starter Blog',
-  author: 'Tails Azimuth',
-  headerTitle: 'TailwindBlog',
-  description: 'A blog created with Next.js and Tailwind.css',
-  language: 'en-us',
+  title: "Jiyoung's Portfolio",
+  author: '이지영',
+  headerTitle: 'Jiyoung Lee',
+  description: '배움을 멈추지 않고 스스로 성장할 줄 아는 프론트엔드 웹 개발자입니다.',
+  language: 'ko-KR',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
-  siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
+  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app', // ✅ 배포 후 수정
+  siteRepo: 'https://github.com/jyungx2/my-portfolio.git',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
   mastodon: 'https://mastodon.social/@mastodonuser',
-  email: 'address@yoursite.com',
-  github: 'https://github.com',
+  email: 'cloundyon31@gmail.com',
+  github: 'https://github.com/jyungx2',
   x: 'https://twitter.com/x',
   // twitter: 'https://twitter.com/Twitter',
   facebook: 'https://facebook.com',
