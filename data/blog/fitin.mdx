@@ -1,0 +1,116 @@
+---
+title: 'Fitin'
+date: '2025-07-30'
+lastmod: '2023-08-05'
+tags: ['next-js', 'tailwind']
+draft: false
+summary: 'Release of Tailwind Nextjs Starter Blog template v2.0, refactored with Nextjs App directory and React Server Components setup.Discover the new features and how to migrate from V1.'
+images: ['/static/images/twitter-card.png']
+---
+
+## | IT 교육기관 ‘멋쟁이사자처럼’ 주관의 멋사로켓단 단기 인턴십 프로젝트
+
+**🗓️ 기간:** 2025.06.30 ~ 2025.07.29  
+**👥 팀 구성:** UI/UX 디자이너 1명 + 프론트엔드 1명 + 백엔드 3명  
+**🌿 깃허브:** [프론트](https://github.com/ocy-likelion/culture_test_frontend), [백엔드](https://github.com/ocy-likelion/culture_test_backend), [AI](https://github.com/ocy-likelion/culture_test_ai)  
+**👩‍💻 담당 역할:** 팀장 & 프론트엔드 전담 개발  
+&nbsp;&nbsp;&nbsp;&nbsp; ☑️ 전체 일정 조율 및 PM과의 커뮤니케이션  
+&nbsp;&nbsp;&nbsp;&nbsp; ☑️ 노션 기반 문서 및 기획안 관리  
+&nbsp;&nbsp;&nbsp;&nbsp; ☑️ 프론트엔드 주요 기능 개발 및 배포
+
+**🛠️ 사용 기술:**  
+📍 프론트엔드: HTML5, CSS3, TailwindCSS, JavaScript, Chart.js, Typescript,
+React, Zustand  
+📍 백엔드: Java, Spring security, OAuth2, JWT, MySQL, Swagger, Spring boot, Python Fast API, scikit-learn
+
+🎥 [시연 영상](https://drive.google.com/file/d/1E6AgsOYX5hczCk5vsu-DGEU03WQxFhHe/view?usp=sharing)  
+📝 [노션 링크](https://likelion.notion.site/C-22a44860a4f480638897cfa90a199d05)
+
+🖥️ [배포 링크](https://www.survey.heun0.site/)  
+📍 프론트엔드: Vercel  
+📍 백엔드: Render(FastAPI), AWS(Spring Boot + MySQL)
+
+<video controls>
+  <source
+    src="https://drive.google.com/uc?export=download&id=1E6AgsOYX5hczCk5vsu-DGEU03WQxFhHe"
+    type="video/mp4"
+  />
+</video>
+
+---
+
+## 트러블슈팅
+
+### 📌 구현 배경 및 해결 전략
+
+로그인 사용자만 접근 가능한 페이지를 보호하기 위해 루트에 있는 라우트 설정 파일에서 부모 element로서 ProtectedRoutes 을 등록함으로써, 전역상태로부터 사용자의 로그인 여부를 검사하고, 비로그인 사용자는 “로그인이 필요합니다.” 토스트와 함께 홈(/)으로 리다이렉트 시켰습니다.
+
+<div className="-mx-2 flex flex-wrap overflow-hidden xl:-mx-2">
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Maple](/static/images/fitin/ts-1.png)
+  </div>
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Lake](/static/images/fitin/ts-2.png)
+  </div>
+</div>
+그런데 로그아웃 시나리오에서 문제가 발생했습니다.
+
+사용자가 **마이페이지(`/mypage`)에서 로그아웃 시, 홈으로 리다이렉트되는 과정**에서 “성공적으로 로그인되었다”는 토스트와 함께 “로그인이 필요하다.”는 토스트가 중복으로 뜨면서 아래와 같이 이중 토스트 현상이 나타났습니다.
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+  ![Maple](/static/images/fitin/ts-3.png)
+</div>
+
+### 📌 어떤 고민이 있었는지?
+
+이 현상은 로그아웃이 완료되어 사용자 정보가 null로 초기화되는 시점에도, 사용자가 여전히 `ProtectedRoutes`에 의해 보호된 경로(`/mypage`)에 머물러 있기 때문에 발생하였습니다.
+
+리액트는 상태 변경 시 관련 컴포넌트를 재렌더링하므로 `/mypage`에서 로그아웃으로 인해 상태 변경이 일어나면 `ProtectedRoutes`가 다시 실행되고, 이를 **의도된 로그아웃**이 아닌 **인증 실패**로 오인하여 로그인이 필요하다는 토스트를 중복으로 띄운 뒤 홈으로 리다이렉트된 것이었습니다. 결과적으로 사용자는 “로그아웃 직후에도 로그인이 필요하다는 안내”를 다시 보게 되며 좋지 않은 UX를 경험하게 되었습니다.
+
+### 📌 어떻게 해결했는지?
+
+`ProtectedRoutes`가 일반적으로 실행되어야 하는 경우와 의도된 로그아웃 상황을 식별하기 위해 Zustand에 `fromSession`이라는 플래그를 추가하고, 로그아웃/회원탈퇴 시점에만 이 값을 `true`로 설정하여 토스트 렌더링 여부를 조정 가능하도록 했습니다.
+
+🔽 로그아웃 시, logoutMutation 함수에 의해 resetUser() 가 실행되어 fromSession 값이 false → true로 변경됩니다.
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Maple](/static/images/fitin/ts-4.png)
+</div>
+
+초기에는 ProtectedRoutes내부에서 다음과 같이 로그아웃 여부를 판단하고, 그 안에서 상태 초기화를 시도했습니다.
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Maple](/static/images/fitin/ts-5.png)
+</div>
+
+그러나 이 코드는 React에서 다음과 같은 에러를 발생시켰습니다:
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Maple](/static/images/fitin/ts-6.png)
+</div>
+
+이 경고는 렌더링 중 상태 변경 금지라는 React의 렌더링 원칙에 **위배되었기 때문에 발생한 것**으로, **React에서는 렌더링 도중에 상태를 변경(setState)하는 것을 엄격히 금지하고 있는데**, 이는 무한 루프, 예측 불가한 렌더링을 초래할 수 있기 때문입니다.
+
+해당 구조에서는 로그아웃이 완료되는 시점에 `user === null` & `fromSession === true`가 되어 상태변경이 일어나면, 마이페이지를 감싸고 있던 `ProtectedRoutes`가 재렌더링되면서 결과적으로 이중 조건문 안의 `clearFromSession()`을 호출되는데, 이때 `clearFromSession()` 함수에 의해 fromSession의 전역 상태 변경이 발생하게 되어 오류의 원인인 "렌더링 중 상태 변경”이라는 금기 패턴이 발생한 것입니다.
+
+따라서 아래와 같이 렌더 **단계(**`ProtectedRoutes`**)에서 `clearFromSession()`실행을 피하고**, 렌더링이 완료된 뒤 **로그인 페이지의 `useEffect`에서 안전하게 호출**하도록 수정하여 해당 경고를 해결하였습니다.
+
+<div className="-mx-2 flex flex-wrap overflow-hidden xl:-mx-2">
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Maple](/static/images/fitin/ts-7.png)
+  </div>
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Lake](/static/images/fitin/ts-8.png)
+  </div>
+</div>
+
+**✅ 결과적으로…**
+
+1. 의도된 로그아웃 흐름에서는 토스트가 없고, 미인증 상태로 보호 경로에 직접 접근했을 때만 토스트가 뜨도록 전역상태를 이용해 분기하였습니다.
+2. `ProtectedRoutes`는 상태 변경을 수행하지 않고 **순수한 페이지 보호 기능의 역할만** 수행하여React 경고 없이 안정화시킬 수 있었습니다.
+
+### 📌 무엇을 배웠는지?
+
+- **의도된 상태 전환을 구분하는 것의 중요성을 배웠습니다.** 부모 컴포넌트인 `ProtectedRoutes`와 자식 컴포넌트(`MyPage`)가 동일한 상태 변경(`user = null`)에 동시에 반응하면서 중복 토스트가 발생했는데, 이때 로그아웃처럼 사용자가 의도한 상태 전환을 전역 플래그(`fromSession`)로 구분함으로써 문제를 해결할 수 있음을 배웠습니다.
+- **React의 렌더링 원칙을 반드시 지켜야 함을 배웠습니다.** 렌더링 중 상태 변경은 금기이며, 라우팅이 완료된 최종 페이지의 `useEffect`에서 후처리를 수행해야 한다는 것을 배웠습니다.
+- **책임 분리의 필요성을 배웠습니다.** `ProtectedRoutes`는 검사·리다이렉트만 담당하고, 상태 초기화나 토스트 제어 같은 부수효과는 페이지 단에서 처리해야 예측 가능성이 높아진다는 것을 배웠습니다.
