@@ -4,8 +4,7 @@ date: '2025-07-30'
 lastmod: '2023-08-05'
 tags: ['next-js', 'tailwind']
 draft: false
-summary: 'Release of Tailwind Nextjs Starter Blog template v2.0, refactored with Nextjs App directory and React Server Components setup.Discover the new features and how to migrate from V1.'
-images: ['/static/images/twitter-card.png']
+summary: '인사담당자의 설문 응답 데이터를 기반으로, 군집화 알고리즘을 적용해 채용 성향을 분석하고, 결과를 시각화하여 제공합니다. 이를 통해 인사담당자는 채용 과정에서 참고할 수 있는 기준과 인사이트를 얻고, 수강생과의 조직문화 적합도(Culture Fit)를 분석할 수 있습니다.'
 ---
 
 ## | IT 교육기관 ‘멋쟁이사자처럼’ 주관의 멋사로켓단 단기 인턴십 프로젝트
@@ -18,17 +17,24 @@ images: ['/static/images/twitter-card.png']
 &nbsp;&nbsp;&nbsp;&nbsp; ☑️ 노션 기반 문서 및 기획안 관리  
 &nbsp;&nbsp;&nbsp;&nbsp; ☑️ 프론트엔드 주요 기능 개발 및 배포
 
+- **구현 방식** : React 기반 CSR 방식의 설문조사 플랫폼
+- **프로젝트 개요** : IT 교육기관 ‘멋쟁이사자처럼’ 주관의 단기 인턴십 프로젝트로, 인사담당자의 설문 응답 데이터를 기반으로 군집화 알고리즘을 적용해 채용 성향을 분석한 뒤 그 결과를 시각화하여 제공하는 웹 애플리케이션입니다. 이를 통해 인사담당자는 채용 과정에서 참고할 수 있는 기준과 인사이트를 얻고, ‘멋쟁이사자처럼’의 수강생과의 조직문화 적합도(Culture Fit)를 분석할 수 있습니다.
+
+- **프로젝트 진행과정** : 프로젝트는 멋쟁이사자처럼이 제공한 한 달간의 타임라인을 기반으로, 초기에는 MVP 개발 발표를 목표로 삼아 UI 마크업과 설문 테스트 기능을 빠르게 완성하고, 설문 결과를 Chart.js로 시각화하는 결과 페이지까지 구현하였습니다. 이후에는 기능 고도화, 버그 개선, 리팩토링 과정을 거쳐 서비스 완성도를 높였습니다.
+
+  매일 30분 스탠드업을 통해 작업 현황을 점검하고, 타임라인에 맞춰 그날 반드시 완료해야 할 기능의 우선순위를 설정하여 개발이 데드라인 내에 진행되도록 조율했습니다. 특히 팀 전원이 AI 지식이 부족한 상황이었기에, k-means 핵심 개념을 주도적으로 정리해 회의록과 노션 문서로 체계화하며 학습 기반을 마련했습니다. 또한 인턴십 시간이 하루 3시간으로 제한적이었던 만큼, 정규 시간 외에도 디스코드를 통한 실시간 소통으로 기능 구현을 당일 내 마무리하여 프로젝트가 원활히 마무리될 수 있도록 할 수 있었습니다.
+
 **🛠️ 사용 기술:**  
 📍 프론트엔드: HTML5, CSS3, TailwindCSS, JavaScript, Chart.js, Typescript,
-React, Zustand  
+React.js, Zustand  
 📍 백엔드: Java, Spring security, OAuth2, JWT, MySQL, Swagger, Spring boot, Python Fast API, scikit-learn
 
 🎥 [시연 영상](https://drive.google.com/file/d/1E6AgsOYX5hczCk5vsu-DGEU03WQxFhHe/view?usp=sharing)  
 📝 [노션 링크](https://likelion.notion.site/C-22a44860a4f480638897cfa90a199d05)
 
-🖥️ [배포 링크](https://www.survey.heun0.site/)  
-📍 프론트엔드: Vercel  
-📍 백엔드: Render(FastAPI), AWS(Spring Boot + MySQL)
+**🖥️ 배포 도구** [move to site](https://www.survey.heun0.site/)  
+📍 **프론트엔드: Vercel**  
+📍 **백엔드: Render(FastAPI), AWS(Spring Boot + MySQL)**
 
 <video controls>
   <source

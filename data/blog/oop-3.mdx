@@ -1,0 +1,328 @@
+---
+title: 'Object-Oriented Programming (3)'
+date: '2024-09-26'
+tags: ['javascript', 'oop']
+draft: false
+summary:
+---
+
+## | Classical OOP vs JavaScript OOP
+
+### 1. Constructor Functions and the new operator
+
+- Regular function과 Constructor function의 한가지 차이점:
+  생성자함수는 일반 함수와 다르게 new operator(keyword)와 함께 불러온다는 것.
+
+> 1. CF always start with a capital letter.
+> 2. Arrow function will actually not work as a function constructor.
+> 3. Person = just a name of constructor function.
+> 4. Function constructors aren't really a feature of the JS language. Instead, they are simply a pattern that has been developed by other developers. And now everyone simply uses this.
+
+```js
+const Person = function (firstName, birthYear) {
+  console.log(this) // Pesron {}
+
+  // 💡 Instance properties
+  // will be available on all the instances that are created through this CF.
+  this.firstName = firstName
+  this.birthYear = birthYear
+
+  // 💡 What if we wanted to add a method to our objects?
+  // ❗️❗️ Never create a method inside of a constructor function.
+  // 수천,수백개의 오브젝트가 필요할 때, 이런 식으로 다 copy할 순 없으니까!
+  // >> that would be terrible for the performance of our code.
+  // ✅ prototypes & prototype inheritance 를 이용할 것이다. (201 강의)
+  // this.calcAge = function () {
+  //   console.log(2037 - this.birthYear);
+  // };
+}
+// = Blueprint
+
+// = Actual house in the real world.
+const jonas = new Person('Jonas', 1991)
+console.log(jonas) // Person {firstName: 'Jonas', birthYear: 1991}
+// new operator = very special operator
+```
+
+### 📌 생성자 함수가 객체를 만드는 과정
+
+```js
+const matilda = new Person('Matilda', 2017)
+const jack = new Person('Jack', 1975)
+console.log(matilda, jack)
+// Person {firstName: 'Matilda', birthYear: 2017} Person {firstName: 'Jack', birthYear: 1975}
+```
+
+1. constructor function을 new operator(keyword)를 이용해 불러온다.
+
+2. 그럼 즉시 new empty object가 생기게 되는데,
+
+3. function안에서의 this 키워드가 이 empty object를 가리킬 수 있다.
+
+4. 이 this 키워드를 이용해서 함수 안에서 obejct의 property들을 설정할 수 있다.
+
+5. 이때 property name을 parameter 이름과 똑같이 할 필요는 없지만, 약간의 관습이다.
+
+6. new operator로 object를 불러오는 이 constructor function을 불러올 수 있다.
+
+지난 강의에서, class로부터 만들어진 obejct는 "instance"라고 부른다고 배웠다.
+JS는 traditional OOP의 개념 안에서 classes의 개념을 가지지 않기 때문에 전통적인 개념의 클래스를 만들 순 없지만, 생성자 함수로부터 객체를 생성할 수 있다는 부분에서 비슷하다.
+즉, 생성자 함수는 자바스크립트 초기부터 클래스를 모방(simulate)한 개념이라고 볼 수 있다.
+따라서 여기서 만든 ​Jonas, Matilda, Jack 객체를 'Person' 함수의 "instance"라고도 부를 수 있다.
+
+```js
+// 💡 instanceof = this will return true or false.
+const jay = 'Jay'
+console.log(jay instanceof Person) // false
+// becasue we didn't create this varibale(jay).
+console.log(jonas instanceof Person) // true
+```
+
+---
+
+### 2. Prototypes
+
+JS에서 만들어진 모든 각각의 함수들은 자동으로 "prototype"이라 불리는 property를 갖는다.
+이때, constructor function에 의해 만들어진 모든 오브젝트는 생성자 함수의 prototype property(객체)에 정의한 모든 methods와 properties에 접근가능하다.
+
+```js
+function Person(name, birthYear) {
+  this.name = name
+  this.birthYear = birthYear
+}
+console.log(Person.prototype) // {}
+```
+
+이 prototype 객체에 우리가 메서드를 추가하면, 나중에 new Person()으로 만들어지는 모든 인스턴스들이 그 메서드를 공유해서 사용할 수 있는데, 이것은 "Prototype Chain" 덕분이다.
+
+생성자 함수 Person으로 만든 객체(jay, jack, matilda 등)는 그 객체의 **proto**(숨겨진 내부 슬롯)가 생성자 함수의 prototype 객체를 참조하게 된다.
+
+```js
+const jay = new Person('Jay', 1995)
+console.log(jay.__proto__ === Person.prototype) // true
+```
+
+즉, “생성자 함수에 의해 만들어진 객체” → “그 객체의 [Prototype]” → “생성자 함수의 prototype 객체” 라는 연결고리가 생기고, 이걸 **프로토타입 체인(prototype chain)** 이라고 부른다.
+
+👉 따라서 우리는 생성자 함수의 prototype property에 메소드를 추가한 다음, 각각의 변수에 이 방법을 불러오는 식으로 메소드를 사용할 것이다. 위의 1번 챕터에서처럼 생성자 함수 내부에 this 키워드를 이용해 메소드를 만들지 않고(= create a copy of a method and attach it to every single obejct.), **prototypal inheritance** 개념을 이용해야 한다.
+
+왜냐하면 아래와 같이 하나의 copy만 만들어도, 해당 생성자 함수에 의해 만들어진 모든 객체들은 만들어진 함수/메소드에 접근 가능하기 때문에 상당히 효율적이다.
+
+```js
+// - this keyword = the object that's calling the method.
+console.log(Person.prototype) // {constructor: ƒ}
+Person.prototype.calcAge = function () {
+  console.log(2037 - this.birthYear) // this > object 가리키게 돼있음.
+}
+console.log(Person.prototype) // {calcAge: ƒ, constructor: ƒ}
+// prototype object에 calcAge라는 method 추가됨!
+
+jonas.calcAge() // 46 (jonas 본인한테는 없지만 __proto__ 타고 올라감)
+matilda.calcAge() // 20 (matilda 본인한테는 없지만 __proto__ 타고 올라감)
+// 어떻게 이게 가능하냐? >>> Any object always has access to the methods and properties
+// from its prototype.인데, jonas/matilda의 prototype = Person.prototype이기 때문.
+```
+
+☝️ 이때, 생성자 함수의 프로토타입은 실제 자기자신의 프로토타입을 가리키는 것이 아니고,
+자기 자신에 의해 만들어진 객체들의 프로토타입을 가리킨다!
+때문에 아래 코드의 결과가 true로 나온다...
+
+```js
+console.log(jay.__proto__ === Person.prototype) // true
+```
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Classical](/static/images/oop/oop(3)-1.png)
+</div>
+=> 실제로 컨솔에 jonas 객체를 찍어보면 __proto__ 프라퍼티를 확인할 수 있고, 그 안에 calcAge 메소드가
+있는 것을 확인할 수 있다!
+
+이 말은 곧:
+
+- “jonas 객체는 Person.prototype을 부모(prototype)로 삼는다”
+- 그래서 Person.prototype에 정의된 메서드나 속성을 jonas도 사용할 수 있다.
+
+```js
+// 💡 Each object has a special property called __proto__.
+console.log(jonas.__proto__) // {calcAge: ƒ, constructor: ƒ}
+// calcAge가 존재하기 때문에 jonas 오브젝트 자체에 이 메소드가 없어도, prototype에는 있기 때문에 바로 사용할 수 있는 것!!
+
+// 1. 생성자함수에 의해 만들어진 객체의 프로토타입 = jonas.__proto__
+// 2. Person의 프로토타입
+// => 이 두 개는 같다.
+console.log(jonas.__proto__ === Person.prototype) // true
+
+// 위 코드처럼 사실 Person.prototype = Person 함수의 prototype을 뜻하는 게 아니다.
+// 이름은 이렇게 지었지만, 자기자신(Person 생성자함수)의 prototype object를 가리키는 게 아니라,
+// 🌟Person function에 의해 만들어진 Object들(=jonas, matilda)의 prototype을 가리키는 것!🌟
+// 즉, Person.prototypeOfLinkedObjects라고 이름을 바꿔야 make sense할 수 있는 부분!!
+
+// 다시말해, 아래의 결과처럼, Person.prototype은 Person function으로 생성된 오브젝트들의 prototype이다.
+// (the prototype of all the objects that are created with the person constructor function.)
+console.log(Person.prototype.isPrototypeOf(jonas)) // true ✅
+console.log(Person.prototype.isPrototypeOf(matilda)) // true ✅
+console.log(Person.prototype.isPrototypeOf(Person)) // false 💥
+```
+
+---
+
+### 3. Prototypal Inheritance
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Classical](/static/images/oop/oop(3)-2.png)
+</div>
+
+1️⃣ Constructor function의 프로토타입은 사실상 자신의 프로토타입이 아니라, 자신으로부터 파생된 객체의 프로토타입을 의미
+
+```js
+console.log(Person.prototype === jonas.__proto__) // true ✅
+
+console.log(Person.prototype.isPrototypeOf(jonas)) // true ✅
+console.log(Person.prototype.isPrototypeOf(matilda)) // true ✅
+console.log(Person.prototype.isPrototypeOf(Person)) // false 💥
+```
+
+2️⃣ 생성자 함수의 프로토타입 상의 constructor는 다시 자기자신을 가리킨다.  
+객체들의 원형(=부모 객체 = Person.prototype)의 constructor는 생성자 함수라고 생각하면 쉽다.
+
+```js
+console.log(Person.prototype.constructor) // Person function
+// constructor와 prototype은 반대 개념이어서 prototype에 constructor을 붙여주면
+// Person function으로 다시 돌아온다.
+
+// ✨ If we want to "inspect" that function, we need to use console.dir
+// => console.dir: 개발자가 객체의 속성 구조를 확인하고 싶을 때 적합한 명령어 (트리 구조 출력)
+// ex. { innerText: "Click Me", id: "", ... } (객체 구조)
+// => console.log: 사람이 읽기 좋은 "값" 중심 디스플레이
+// ex. <button>Click Me</button>
+console.dir(Person.prototype.constructor)
+// ƒ Person(firstName, birthYear)
+```
+
+3️⃣ 생성자함수와 new 키워드를 사용해 객체를 생성할 수 있다.
+빈 객체가 생성되며 CF 호출 안의 this 키워드가 빈 객체를 가리키게 되어 this키워드를 사용해 프라퍼티와 메소드를 설정할 수 있다.
+동시에 객체는 생성자 함수의 프로토타입 프라퍼티에 **proto**(프로토타입 체인)에 의해 자동으로 연결된다.
+
+4️⃣ 이러한 프로토타입 체인/상속이 왜이리 중요하고 강력할까?
+
+jonas.calcAge() 코드를 살펴보자.
+
+비록 jonas 객체에 직접적으로 calcAge라는 함수는 없지만,
+이 프로토타입 체인을 통해 JS가 object lookup을 실시하여 calcAge라는 함수를 사용할 수 있게 한다.
+
+즉, jonas 객체는 자신의 프로토타입으로부터 calcAge 메소드를 상속하여(물려받아) 사용할 수 있는 권한을 부여받게 된다는 점에서 코드 성능에 큰 영향을 미친다.
+=> jonas 객체가 자기 자신을 만들어준 부모 객체, 즉 프로토타입에 **proto**로 연결될 수 있고, 메소드/프라퍼티를 찾아낼 수 있는(looking up) 능력은 프로토타입 체인에 의해 가능하다.
+
+즉, jonas객체와 prototype은 서로 prototype chain을 만든다고 볼 수 있다.
+prototype chain은 단순히 생성자함수와 그로부터 만들어진 객체만을 이어주는 것이 아닌, 더 나아가 생성자함수의 원형까지 이어준다.
+
+위와 같은 프로토타입 체인에 의한 상속 메커니즘 덕분에 우리가 지금까지 배열/오브젝트/함수 상의 여러 메소드들을 아무렇지 않게 사용할 수 있었던 것!
+
+```js
+1. 배열의 프로토타입 (Array.prototype)
+const arr = [3, 6, 6, 5, 5, 6, 5]; // new Array === []
+console.log(arr.__proto__); // the prototype of array
+// 🌟All these methods🌟 that we already know. -> fill/filter/find/pop/push/reduce/shift....
+// => This is the reason why all the arrays get access to all of these methods.
+// 우리가 그동안 어레이 상에서 method를 불러올 수 있었던 이유는 prototype에 이러한 method들이
+// 있었기 때문! 물론 각각의 어레이는 이러한 methods를 다 포함하진 않지만, 이러한 methods를
+// 어레이의 prototype으로부터 물려받기(상속받기) 때문에 사용 가능한 것.
+// (any array inherits all their methods from its a prototype.)
+console.log(arr.__proto__ === Array.prototype);
+// prototype property of the constructor = prototype of all the objects created by that constructor.
+
+2. 함수의 프로토타입 (Function.prototype)
+function 또한 오브젝트이기 때문에 prototype을 갖는다. -> apply/bind/call method를 포함..
+=> 그동안 우리가 함수 상에서 이러한 method를 불러올 수 있었던 이유
+console.dir(x => x + 1);
+```
+
+| (x => x+1) 화살표 함수의 prototype
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Classical](/static/images/oop/oop(3)-3.png)
+</div>
+
+---
+
+### 4. Prototype Chain
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Classical](/static/images/oop/oop(3)-4.png)
+</div>
+
+생성자함수의 프로토타입, 즉 객체들의 부모 객체도 어쨌든 객체이다.
+그리고 JS 내 모든 객체들은 프로토타입을 갖기 때문에,
+Person.prototype.**proto** === Object.prototype 라고 볼 수 있다.
+
+어쨌든, Person.prototype도 객체라는 것은 어떤 생성자 함수에 의해 만들어졌다고 볼 수 있는데,
+이때 생성자 함수는 'Object'라는 Built-in 생성자 함수인 것이며, 프로토타입 체인에 의해 jonas 객체까지 다 연결되어 있다고 볼 수 있다.
+
+이때, Object 생성자 함수의 프로토타입이 프로토타입 체인의 꼭대기이므로,
+Object.prototype === Person.**proto** === null이다.
+
+```js
+console.log(jonas.__proto__) // prototype property of Person(jonas' CF)
+console.log(jonas.__proto__.__proto__) // prototype property of Object(Person's CF)
+// = Object.prototype (top of the prototype chain)
+console.log(jonas.__proto__.__proto__.__proto__) // 💥null
+// because object.prototype is usually the top of the prototype chain.
+```
+
+---
+
+### | Prototype Chain VS. Scope Chain
+
+이러한 프로토타입 체인은 스콥체인 개념과 비슷하다.
+단지, 코드 상의 변수가 선언된 공간인 스콥을 연결지어 특정 변수의 사용여부를 결정짓는 것이 아닌,
+객체 안의 프라퍼티와 메소드의 사용 여부를 공유하는 개념의 체인이라고 볼 수 있다.
+
+예를 들어 이전 강의에서 봤던 hasOwnProperty 메소드를 사용할 수 있었던 이유가 jonas 객체에 직접적으로 존재하진 않아도, 프로토타입 체인에 의해 method/property lookup을 통해 사용가능한 메소드이다.
+
+프로토타입 체인에서 method/property lookup은 자신의 부모의 프로토타입 객체(Person.prototype) → 부모의 부모의 프로토타입 객체(Object.prototype) 순으로 올라가면서 해당 method/property을 찾을 때까지 진행되며 이때 hasOwnProperty 메소드는 Object.prototype에 존재하기 때문에 사용 가능했었다.
+
+> **❓🤔 이러한 프로토타입 상속을 이용해 “원하는 기능을 prototype에 직접 추가해 두면, 모든 관련 객체에서 재사용할 수 있으니 더 효율적이지 않을까?”라는 생각이 들 수 있다..**
+
+=> Array의 prototype에 any new method나 추가할 수 있고, 이 추가한 method(내가 만드는 함수)는
+모든 어레이가 inherit할 것이므로 위에 있는 arr이라는 어레이 상에서 불러올 수 있다!
+하지만 이는 실제 협업에서 바람직하지 않은 메소드 생성 방법이다.
+
+1. JS의 다음 버전이 내가 추가한 method 이름과 동일한 이름을 가진 method를 추가할 수도 있다. -> break my cod
+2. 많은 개발자들이 여러가지 동일한 method를 다른 이름으로 만들건데, 그렇게 되면 많은 버그를 create
+
+```js
+Array.prototype.unique = function () {
+  return [...new Set(this)]
+}
+console.log(arr.unique()) // [3, 6, 5]
+```
+
+---
+
+### 🚨 왜 Array.prototype에 메서드를 직접 추가하면 안 될까?
+
+JavaScript에서는 Array.prototype에 내가 만든 메서드를 추가하면, 모든 배열 인스턴스에서 해당 메서드를 사용할 수 있다.
+
+예를 들어:
+
+```js
+Array.prototype.sayHello = function () {
+  console.log('Hello from Array!')
+}
+
+const arr = [1, 2, 3]
+arr.sayHello() // "Hello from Array!"
+```
+
+겉보기에는 편리해 보이지만, 실무에서는 권장되지 않는다. 이유는 크게 두 가지다.
+
+**1. 미래 버전 충돌 위험**  
+ JavaScript의 차기 버전에서 동일한 이름의 메서드가 공식적으로 추가될 수 있다.
+그럴 경우 내가 만든 메서드와 충돌해서 기존 코드가 깨질 수 있음.
+
+**2. 협업/호환성 문제**
+
+- 여러 개발자가 각자 Array.prototype에 메서드를 추가한다면,
+- 같은 이름인데 동작이 다른 경우가 생길 수 있다.
+- 이는 예상치 못한 버그와 유지보수 지옥을 만든다.
+  => Array.prototype에 직접 메서드를 추가하는 건 전역을 오염시켜 미래 호환성과 협업 안정성을 깨뜨리는 위험한 방법이므로, 유틸 함수나 헬퍼 라이브러리(예: Lodash, Ramda)를 사용하는 게 최선이다.

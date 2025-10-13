@@ -1,0 +1,192 @@
+---
+title: 'Object-Oriented Programming (2)'
+date: '2024-09-23'
+tags: ['javascript', 'oop']
+draft: false
+summary:
+---
+
+## | Classical OOP vs JavaScript OOP
+
+### 전통 OOP (Classical OOP)
+
+= Java, C++, C#, Python 등 클래스 기반 언어에서 사용하는 모델  
+= 설계도 개념의 클래스로부터 메소드/속성이 복사(copy) 되어 인스턴스가 가짐
+
+### JS OOP (Prototypal OOP)
+
+= 객체가 다른 객체(프로토타입)에 연결되어
+
+(1) 프로토타입으로부터 메소드와 속성을 상속받아(inherit) 쓰는 것처럼 보이지만,
+
+🔹 객체가 프로토타입으로부터 메소드/속성을 상속받아(inherit) 쓰는 것처럼 보임  
+🔹 마치 "부모 → 자식" 관계처럼 설명  
+🔹 배열이 map()을 쓰면 "배열이 Array.prototype에서 메소드를 상속받았다"라고 표현 가능
+
+(2) 실제로는 메소드 실행을 프로토타입에 위임(delegate) 하는 방식이다.
+🔹 사실 객체는 자기 자신에게 메소드가 없으면 프로토타입에게 위임(delegate) 해서 찾아 씀  
+🔹 즉, "내가 못하면 내 위(프로토타입)한테 부탁해" 라는 식의 책임 위임 구조  
+🔹 그래서 화살표가 Object → Prototype 으로 그려지는 거죠
+
+---
+
+### 1. 전통(Classical) OOP
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Classical](/static/images/oop/oop(2)-classical.png)
+</div>
+
+- 역사적 맥락에서 붙은 이름으로, C++, Java, C#, Python 같은 클래스 기반 언어들이 OOP의 기본 모델
+- class라는 설계도를 정의→new 키워드로 instance를 생성(instantiate)→메소드/속성을 상속받아 사용.
+
+  ✔️ class → 설계도  
+  ✔️ instance → 그 설계도로 찍어낸 개별 객체
+
+  > 이러한 방식은 인스턴스(Objects)가 클래스로부터 instantiated 됐다고 표현한다.  
+  > 특정 클래스의 한 "예"가 될 수 있는 객체가 생성되었다고 이해하면 될 것 같다.
+
+- 이 방식이 너무 오래 쓰였고, 대부분의 사람들이 처음 접하는 OOP 개념이기 때문에 “전통적(Classical) OOP”라고 부른다.
+
+- JS OOP와 전통 OOP는 전혀 다르지만 왜 class - instance 개념을 먼저 알아야 할까?
+  1. 실제 비슷한 개념으로 동작한다.
+  2. 사람들은 JS OOP를 논할 때 여전히 class-instance 단어를 쓴다.
+  3. JS 문법 자체가 Instance라는 단어를 사용한다.
+
+---
+
+### OOP in JS: prototypes
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Prototypes](/static/images/oop/oop(2)-prototypes.png)
+</div>
+
+- 자바스크립트는 1995년에 만들어졌는데, 초기 설계 목적이 Java, C++ 같은 “무거운 언어”와 다르게 웹 브라우저에서 빠르고 유연하게 객체를 생성해야 했고, 복잡한 클래스 시스템은 필요하지 않았다.
+
+- 그래서 “클래스 → 인스턴스” 모델 대신 프로토타입 체인(prototype chain) 방식을 채택했다.
+
+- 프로토타입 체인 방식은 객체가 다른 객체(프로토타입)에 연결되어 메소드/속성을 위임(delegate)받아 사용하는 형식으로, Prototypal Inheritance\* / Delegation\*\* 이라고도 부른다.
+  - Prototypal Inheritance\*: 객체가 프로토타입으로부터 기능을 물려받아 사용한다는 관점에서 해석한 JS OOP
+    - 특정 프로토타입 객체에 연결되어 있는 모든 객체들은 해당 프로토타입에 정의되어 있는 메소드와 프라퍼티를 사용 가능하다는 뜻으로, 객체가 프로토타입 객체로부터 메소드와 프라퍼티를 물려받아 사용하는 것처럼 보여서 'inheritance'라는 단어가 붙게 되었다.
+
+    - 여기서 Inheritance 개념은 이전 강의에서 다룬 전통 OOP의 class implementation의 4가지 원리에 해당하는 inheritance 개념과는 다르다. 그것은 class가 또 다른 class로부터 상속 받는 것이고, Prototypal inheritance의 경우에는 instance가 class로부터 상속받는 것을 뜻한다.
+      - 이때, JS OOP임에도 불구하고 instance라고 표현한 이유? -> 전통 OOP를 먼저 배워야 하는 2번째 이유
+      - 원래는 object(객체)라고 부르는 게 더 정확하지만, 여전히 전통 OOP개념에 빗대어서 instance라고도 많이 부른다. 즉, JS에서도 new 키워드로 객체를 생성하면, 흔히 그 class의 instance라고 부른다. 따라서 내부적으로는 constructor + prototype이지만, 사실상 JS에서 말하는 instance = “생성된 객체”예요.
+
+  - Delegation\*\*: 객체가 프로토타입에게 책임을 떠넘겨(위임) 프로토타입에게 동작을 맡긴다는 관점에서 해석한 JS OOP
+    - 객체들이 프로토타입 객체에 연결된 메소드들을 위임함으로써 해당 메소드들을 사용한다고 표현하기도 한다. 아래 사진에서 Object -> Prototype 순으로 화살표가 표시된 이유기도 하다. (객체가 메소드를 프로토타입에 위임!)
+
+- 나중에 ES6에서 class 문법을 도입했지만, 실제 동작은 여전히 프로토타입 기반이에요.
+
+- 즉, 자바스크립트의 ES6 class는 기존의 "생성자 함수 + prototype" 패턴을 더 보기 쉽게 바꾼 문법적 설탕(syntactic sugar)일 뿐.
+  - 💥 여기서 주의할 점: 여기서 말하는 JS의 class는 진짜 전통적인 의미의 클래스(설계도)가 아님.
+  - 기존에 있는 기능을 더 쉽고 보기 좋게 쓰라고 추가된(더 간단하고 직관적으로 표현하기 위해) 문법
+  - 실제 동작은 기존 방식과 완전히 동일하지만, 사람이 읽고 쓰기 편해짐.
+  - 즉, 프로그래머를 위한 편의 기능​이지, 언어 자체에 새로운 기능을 추가한 건 아님.
+
+---
+
+### 📌 정리하면
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Summary](/static/images/oop/oop(2)-summary-1.png)
+</div>
+
+1. 전통 OOP의 class = Java, C++ 등에서 쓰는 진짜 클래스 기반 설계도
+2. JS OOP = 태생부터 프로토타입 기반 (클래스 자체가 없음).
+3. ES6 이후 JS의 class = 보기에는 전통 OOP의 class와 비슷하지만, 실제로는 constructor + prototype으로 돌아가는 문법적 설탕.
+
+---
+
+**그래서 이 프로토타입을 어떻게 만들 수 있냐?**  
+**실제로 자바스크립트 언어로 어떻게 OOP를 구현할 수 있을까?**  
+=> 총 3가지 방법이 있다.
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Summary](/static/images/oop/oop(2)-summary-2.png)
+</div>
+
+### 1. Constructor functions: 함수를 이용해 programmtically\* 하게 객체를 만드는 방법
+
+- 실제 JS의 배열, 맵, 세트와 같은 객체들이 구현되어 있는 방법
+- 초창기 JS에서 OOP가 적용된 방식
+  \*programmtically: by using a computer program or programming language, rather than manually => "수동으로 하지 않고, 코드로 자동화/직접 처리한다”
+
+```js
+// Person은 생성자 함수
+// Person.prototype에 메소드를 정의하면,
+// new Person()으로 생성된 객체들이 다 같이 공유해서 사용 가능
+// 이게 ES5까지의 전통적인 JS OOP 방식
+
+function Person(name) {
+  this.name = name
+}
+Person.prototype.greet = function () {
+  console.log(`Hi, I'm ${this.name}`)
+}
+
+const p1 = new Person('Ellie')
+p1.greet() // Hi, I'm Ellie
+```
+
+### 2. ES6 Classes: JS OOP를 구현하는 더 현대적인 방법
+
+- 전통 OOP의 클래스(설계도, 청사진) 개념과는 다르다.
+- constructor functions의 syntatic sugar로, 단순히 개발자 입장을 고려해 1번 방식을 사용하기 쉽게 만든 문법!!
+  - 이미 있던 생성자 함수 기반 OOP를 좀 더 읽기 쉽고 익숙한 문법으로 감싼 JS의 OOP 방법
+  - 즉, ES6 class도 결국 "생성자 함수 방식"처럼 prototype을 기반으로 동작하며, 단지 문법만 더 깔끔하게 바뀐 것
+  - 이때, prototype은 생성자 함수 전용 개념이 아니라, JS 객체 시스템 전체에 깔려 있는 핵심 메커니즘
+    - JS에서 모든 객체는 내부적으로 [[Prototype]] 링크를 가짐 (**proto**)
+
+    - 그리고 함수 객체(Function)에는 특별히 prototype 프로퍼티가 있어서, new\*와 함께 사용할 때 생성된 객체의 [[Prototype]]을 자동 연결해 줌
+
+    - 즉, prototype이라는 개념 자체는 언어 레벨(프로토타입 체인) 에서 항상 존재해요.
+
+    - 단지, 생성자 함수 + new를 쓸 때 그 prototype 프로퍼티가 중요한 역할을 하는 거예요.
+
+```js
+// class 문법을 쓰면 내부적으로는 constructor function + prototype 구조로 변환됨
+// Person 클래스도 사실은 함수이고, Person.prototype.greet에 메소드가 들어가 있음
+// 즉, class도 결국 prototype 기반이다.
+
+class Person {
+  constructor(name) {
+    this.name = name
+  }
+  greet() {
+    console.log(`Hi, I'm ${this.name}`)
+  }
+}
+
+const p1 = new Person('Ellie')
+p1.greet() // Hi, I'm Ellie -> ✅위의 생성자 함수 기반의 방식과 결과가 동일!
+```
+
+> 📌 new 키워드의 역할
+> new는 생성자 함수(constructor function) 와 ES6 클래스(class) 둘 다에서 사용됩니다.
+> 공통적으로 하는 일은
+>
+> 1.  새로운 빈 객체 생성
+> 2.  그 객체의 [[Prototype]]을 생성자 함수(or 클래스)의 prototype 프로퍼티에 연결
+
+```
+newObj.__proto__ = ConstructorFunction.prototype;
+```
+
+> 3.  생성자 함수(또는 클래스)의 코드 실행
+
+- 안에서 this가 새로 만든 객체를 가리키게 됨.
+- this.name = name 같은 코드가 실행되면서 속성이 붙음.
+
+> 4. 자동으로 그 객체를 반환
+
+- 단, 생성자 함수 안에서 명시적으로 객체를 return 하면 그게 반환됨
+
+---
+
+🖍️ Keep in Mind....
+
+1. OOP의 4가지 원리(추상화, 캡슐화, 상속, 다형성) 는 전통 OOP(classical OOP)에서만 중요한 게 아니라, JS의 프로토타입 기반 OOP에서도 그대로 적용된다.
+
+2. JS OOP 구현 방식 3가지 모두 결국 프로토타입 상속(prototypal inheritance) 을 기반으로 동작
+
+=> JS는 전통적인 클래스 기반 OOP랑 구현 방식이 다르지만(프로토타입), OOP의 핵심 원리 4가지는 여전히 유효하다. 그리고 우리가 배운 3가지 구현 방식(생성자 함수 / ES6 class / Object.create)에서도 이 원리들을 적용할 수 있다.
