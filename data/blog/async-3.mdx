@@ -1,0 +1,176 @@
+---
+title: 'Asynchronous Javascript (3)'
+date: '2025-10-03'
+tags: ['javascript', 'asynchronous']
+draft: false
+summary: 'OOP는 코드를 객체 중심으로 구조화해 복잡한 로직을 효율적으로 관리하는 프로그래밍 패러다임이다. 객체는 데이터(속성)와 메서드를 하나의 블록으로 묶어 서로 상호작용하며, 이를 통해 유지보수성과 재사용성을 높인다. OOP의 4대 핵심 원리는 추상화(Abstraction), 캡슐화(Encapsulation), 상속(Inheritance), 다형성(Polymorphism) 으로, 불필요한 세부사항을 숨기고, 데이터 보호 및 코드 재사용을 가능하게 한다.'
+---
+
+## | Promises and the Fetch API
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Abstraction](/static/images/async/async(3)-1.png)
+</div>
+---
+
+### Promise란?
+
+: Promise는 비동기 연산의 미래 결과를 나타내는 객체.
+나중에 성공 값이나 실패 이유를 담아 반환하며, 한 번 settle되면 상태가 바뀌지 않는다.
+
+- 비동기 연산의 미래 결과를 나타내는 객체
+- 쉽게 말해, 나중에 도착할 값(또는 에러)에 대한 약속을 표현하는 컨테이너
+
+  > 📌 즉시 값이 아니라 “곧 도착할 값(말 그대로 값을 약속하는 것!)”을 다룰 수 있게 해줌.
+
+  ***
+
+### Promise의 장점
+
+1. 콜백 의존도 감소: 이벤트 리스너나 콜백 함수만으로 비동기를 처리하지 않아도 됨 → 유지보수성 ↑
+
+- 전통적으로 비동기 작업은 콜백 함수 안에서만 결과를 사용할 수 있었는데, Promise는 결과를 객체 형태로 반환하므로 .then() 체이닝이나 변수 저장을 통해 더 유연하게 다룰 수 있다.
+- 즉, “콜백 내부에서만 값 처리”라는 제약을 벗어나게 된다.
+  - 기존 콜백 방식: 비동기 결과를 오직 콜백 함수 인자로만 전달받음 → 콜백 안에서만 처리 가능 → 중첩/의존 심화
+  - Promise 방식: 결과가 객체에 담겨 반환되므로, then/catch 체인으로 분리된 로직 작성 가능 - 필요하다면 변수를 통해 다른 함수에서 참조 가능 - 따라서 "콜백 내부 종속성 → Promise 객체 자체 관리"로 바뀌었기 때문에, 자연스럽게 콜백 헬도 방지됨.
+    ​
+
+2. 콜백 헬 방지: 중첩된 콜백 대신 .then() 체이닝이나 async/await으로 가독성 있는 코드 작성 가능
+
+3. 표준화된 문법 (ES6, 2015부터 도입): JS에 공식적으로 포함
+   → 라이브러리 의존 없이 브라우저/Node.js 환경에서 기본적으로 사용 가능
+
+4. 일관된 에러 처리: .catch() 또는 try/catch(with async/await)로 에러를 통합적으로 처리 가능
+   then/catch/finally는 Promise 전용 문법이고,
+   async/await는 try/catch/finally로 동기식처럼 에러 처리 가능하다. -> 동기코드에서만 사용 ok
+   try/catch는 then() 체인에는 적용되지 않는다.⭐️⭐️⭐️
+
+> #### Promise 체이닝 방식
+
+```js
+fetch('/data.json')
+  .then((res) => res.json())
+  .then((data) => console.log('성공:', data))
+  .catch((err) => console.error('에러:', err))
+  .finally(() => console.log('완료'))
+```
+
+> 👉 여기선 catch()가 Promise 전용 에러 처리 문법으로 try/catch는 쓸 수 없고, 반드시 .catch()를 붙여야 한다.  
+> ✔️ then() 안에서 에러가 발생하면, 그건 Promise의 rejection이므로 .catch()로 처리해야 한다.  
+> ✔️ try/catch는 동기 코드 블록에서만 동작하기 때문에, then() 체이닝에는 바로 적용되지 않음.
+
+---
+
+> #### Async/await 방식
+
+```js
+async function loadData() {
+  try {
+    const res = await fetch('/data.json')
+    const data = await res.json()
+    console.log('성공:', data)
+  } catch (err) {
+    console.error('에러:', err)
+  } finally {
+    console.log('완료')
+  }
+}
+```
+
+> Promise를 소비하는 문법에서의 then/catch/finally 체이닝을 보기 좋게 바꾼  
+> 문법 설탕일 뿐(syntactic sugar), 백그라운드에서 일어나는 동작은 동일하다!  
+> 👉 await 때문에 에러가 "동기 코드처럼" 던져지기 때문에, try/catch로 잡을 수 있고, finally도 그대로 사용 가능.
+
+- async function은 항상 Promise를 반환합니다. return x → Promise.resolve(x).
+- await p는 사실상 p.then(...)으로 코드를 나눠 이어붙이는 것과 같다. 즉, await 뒤의 나머지 코드는 그 then 콜백 안으로 들어간다고 보면 됩니다.
+- await는 그 함수 내부 흐름만 “잠깐 멈춘 것처럼 보이게” 만들 뿐, 실제로는 남은 코드를 .then(...) 콜백으로 스케줄해서(마이크로태스크 큐) 그래서 메인 스레드(콜 스택)는 막지 않는다.
+- await 지점 이후 코드는 다음 마이크로태스크 턴에 재개된다. (= then이 하는 것과 동일한 타이밍)
+
+---
+
+### Promise 생명주기 (Lifecycle)
+
+1. Pending (대기 중): 비동기 작업이 아직 끝나지 않은 상태
+2. Settled (완료됨) → 단 한 번만 일어남!
+   - Fulfilled: 성공 → 값이 도착
+   - Rejected: 실패 → 에러 발생​
+
+> ⚠️ settled 이후에는 상태가 바뀌지 않음 (불변)
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Abstraction](/static/images/async/async(3)-2.png)
+</div>
+
+---
+
+### Promise 소비(사용) 방식
+
+**- 전통 방식**
+
+- .then(onFulfilled) : 성공 값 처리
+- .catch(onRejected) : 에러 처리
+- .finally(callback) : 성공/실패 관계없이 마지막 처리
+
+```js
+// fetch는 Promise를 반환하는 대표적인 함수
+fetch('https://jsonplaceholder.typicode.com/posts/1')
+  .then((response) => {
+    // 성공적으로 응답이 오면 response 객체 반환
+    return response.json() // 또 다른 Promise 반환
+  })
+  .then((data) => {
+    // 두 번째 then → 실제 데이터 사용 가능
+    console.log('데이터 가져오기 성공 ✅:', data)
+  })
+  .catch((error) => {
+    // fetch 실패나 JSON 변환 실패 시 실행
+    console.error('에러 발생 ❌:', error)
+  })
+  .finally(() => {
+    // 성공/실패와 상관없이 마지막에 실행
+    console.log('작업 완료 🔚')
+  })
+```
+
+**- 모던 방식 (ES8 / 2017~)**
+
+- async/await 사용
+- 코드가 동기처럼 보이게 작성 가능
+
+```js
+async function fetchData() {
+  try {
+    const res = await fetch('https://jsonplaceholder.typicode.com/posts/1')
+    const data = await res.json()
+    console.log('성공:', data)
+  } catch (err) {
+    console.error('에러 발생:', err)
+  } finally {
+    console.log('작업 완료')
+  }
+}
+```
+
+---
+
+### 추가 개념 정리
+
+**- fetch API : Promise를 반환하는 대표적인 내장 함수**  
+**- try/catch 블록:**
+
+- JavaScript의 모든 코드에서 쓸 수 있는 일반적인 예외 처리 문법으로, Promise 전용도 아니고, async-await 전용도 아니다.
+
+- 다만 동기적으로 실행되는 코드에서 발생하는 에러만 잡을 수 있음!
+
+- Promise 체인(then) 안에서 발생한 에러는 비동기적으로 발생하기 때문에, 바깥쪽 try/catch에서는 잡히지 않고, 대신 .catch() 메서드를 사용해야 함.
+
+- 이때, Promise 비동기 함수를 async/await와 함께 쓰면 Promise의 reject가 마치 동기 에러처럼 throw되기 때문에 try/catch 블록으로 비동기 에러까지 처리 가능 -> 그래서 보통 “비동기 코드에서 try/catch는 async/await과 함께 쓴다”라고 많이 설명하는 것!
+
+---
+
+### 요약 정리
+
+- Promise는 "비동기 결과 컨테이너"
+- 콜백 지옥 해결, 일관된 에러 처리, 표준화가 장점
+- then/catch/finally vs async/await + try/catch 두 가지 방식으로 Promise 소비/에러 처리 가능
+- try/catch는 모든 함수에서 사용 가능하지만, async/await와 함께 쓰면 비동기 처리에 특히 강력 ✅
