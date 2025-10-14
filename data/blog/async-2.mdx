@@ -1,0 +1,179 @@
+---
+title: 'Asynchronous Javascript (2)'
+date: '2025-10-01'
+tags: ['javascript', 'asynchronous']
+draft: false
+summary: 'OOP는 코드를 객체 중심으로 구조화해 복잡한 로직을 효율적으로 관리하는 프로그래밍 패러다임이다. 객체는 데이터(속성)와 메서드를 하나의 블록으로 묶어 서로 상호작용하며, 이를 통해 유지보수성과 재사용성을 높인다. OOP의 4대 핵심 원리는 추상화(Abstraction), 캡슐화(Encapsulation), 상속(Inheritance), 다형성(Polymorphism) 으로, 불필요한 세부사항을 숨기고, 데이터 보호 및 코드 재사용을 가능하게 한다.'
+---
+
+## | Asynchronous Behind the Scenes: Event Loop
+
+자바스크립트는 싱글 스레드 언어다. 즉, 한 번에 오직 하나의 작업만 처리할 수 있다.  
+하지만 우리가 사용하는 브라우저 환경에서는 네트워크 요청, 이미지 로딩, 타이머 같은 작업들이  
+동시에 비동기적으로 처리되는 것처럼 보이는데 어떻게 가능한 걸까?  
+그 비밀은 바로 "JS 런타임 환경(Runtime Environment)"과 이벤트 "루프(Event Loop)"안에 있다.
+
+---
+
+### 1. 자바스크립트 런타임이란?
+
+런타임(Runtime)은 자바스크립트 코드가 실행되는 컨테이너 개념이다.  
+여기에는 다음과 같은 핵심 요소들이 있다:
+
+- JS Engine (엔진)
+  - Heap: 객체가 저장되는 메모리 공간
+  - Call Stack: 실행 중인 코드가 쌓이는 공간 (함수 실행 컨텍스트가 들어감)
+
+- Web APIs
+  - 자바스크립트 자체가 아니라 브라우저가 제공하는 API
+  - 예: DOM, Timers(setTimeout), Fetch API, Geolocation 등
+
+- Callback Queue
+  - 이벤트 발생 후 실행을 기다리는 콜백 함수들이 줄 서 있는 대기열
+
+- Event Loop
+  - 콜스택(Call Stack)이 비었는지 확인하고, 비었으면 Callback Queue에서 함수를 꺼내 실행
+
+​👉 즉, 자바스크립트는 엔진만으로는 동시성(concurrency)을 처리할 수 없고, 브라우저 런타임의 이벤트 루프가 있어야 non-blocking 방식으로 동작할 수 있다.
+
+---
+
+### 2. 비동기 코드가 실행되는 과정
+
+```js
+const el = document.querySelector('img')
+el.src = 'dog.jpg'
+el.addEventListener('load', () => {
+  el.classList.add('fadeIn')
+})
+
+fetch('https://someurl.com/api').then((res) => console.log(res))
+```
+
+돔은 자바스크립트와 관련이 없다. 돔과 관련된 것들은 모두 "WEB APIs"에서 관여한다.
+
+즉, 돔과 관련된 비동기적인 실행은 Web APIs에서 일어난다.  
+따라서 "타이머"나 "AJAX 호출"과 같은 <u>비동기 업무들은 전부 브라우저의 Web API 환경에서 실행</u>된다.
+
+#### 2-1. 이미지 로딩
+
+- el.src = 'dog.jpg' 실행 시, 이미지를 동기적으로 콜스택에서 처리하지 않고(이미지 로드가 오래 걸릴 경우, 큰 버그를 만들어낼 수 있기 때문), 브라우저의 "Web API 환경"으로 넘겨 "백그라운드"에서 로딩 시작.
+
+- addEventListener('load', ...) → 콜백 함수(...);가 Web API 환경(= 이미지 로딩이 실행되고 있는 환경과 동일)에 등록되어 로드 이벤트 발생 시점까지 대기하게 되고, 그 동안에는 나머지 코드가 계속 실행됨
+
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+    ![Abstraction](/static/images/async/async(2)-1.png)
+  </div>
+
+#### 2-2. Fetch 요청
+
+- fetch() 호출 시 AJAX 요청도 역시 Web API에서 처리.
+- 이미지 로딩 로직과 마찬가지로, then에 등록된 콜백 함수가 Web API 환경에 등록되어 데이터를 가져오는(Fetching data) 로직이 끝날 때까지 대기.
+
+  <div className="-mx-2 flex flex-wrap overflow-hidden xl:-mx-2">
+    <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+      ![Abstraction](/static/images/async/async(2)-2.png)
+    </div>
+    <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+      ![Abstraction](/static/images/async/async(2)-3.png)
+    </div>
+  </div>
+
+- fetch의 결과(Promise)가 준비되면, .then()에 등록된 콜백은 Microtasks Queue에 들어감.
+
+#### 2-3. Callback Queue와 Microtasks Queue
+
+1️⃣ Callback Queue (= 콜백 함수들이 순서대로 실행되어야 하는 리스트) :
+
+- DOM 이벤트, setTimeout 같은 비동기 콜백이 들어감.
+- 예: load/click 이벤트 핸들러
+
+> 이미지 로드가 완료되어 해당 콜백 함수가 Web API 환경에서 콜백 큐로 이동한다고 해보자.
+> 💥 이때, 돔이벤트는 사실 비동기 동작은 아니지만, 돔이벤트에 등록된 콜백함수를 실행할 땐 콜백 큐를 사용하기 때문에 마치 비동기적으로 실행되는 것처럼 보인다. 따라서 load 이벤트에 대한 콜백함수를 addEventListener를 이용해 등록했을 때, 이미지 로드가 완료되는 순간에 해당 콜백함수가 콜백큐로 옮겨져 실행되게 된다. (👉 4. 중요한 특징 두번째 포인트 참고!)
+
+<div className="-mx-2 flex flex-wrap overflow-hidden xl:-mx-2">
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Abstraction](/static/images/async/async(2)-4.png)
+  </div>
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Abstraction](/static/images/async/async(2)-5.png)
+  </div>
+</div>
+
+이때, 이벤트 루프는 콜스택이 비어있는지 확인하고(Global EC는 항상 존재하므로 제외), 콜스택이 비었을 때(= 어떤 코드도 실행되지 않고 있을 때) 콜백 큐에 있는 첫번째 콜백 함수를 콜스택으로 옮겨와 실행시킨다.
+
+- 이벤트 루프는 각 콜백이 언제 실행될지 결정함 (콜스택(Call Stack)이 비어 있는지 확인하고, 비어 있다면 → 콜백 큐(또는 마이크로태스크 큐)에 쌓여 있던 콜백을 하나 꺼내 실행시키기 때문)
+
+- 즉, 실행 시점과 순서를 정하는 "조정자" 역할​을 한다고 볼 수 있으며,
+  - 오케스트라 지휘자가 악기들을 적절히 조율해서 음악을 만들어내는 것처럼, 이벤트 루프는 콜스택 / 콜백 큐 / 마이크로태스크 큐 사이에서 어떤 콜백이 언제 실행될지 조율한다는 의미에서 전체 자바스크립트 실행 흐름을 조율하는 orchestration이라고 볼 수 있다.
+    => 덕분에 싱글 스레드 환경에서도 여러 비동기 작업이 동시에 돌아가는 것처럼 느껴짐!
+    <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+      ![Abstraction](/static/images/async/async(2)-6.png)
+    </div>
+
+  ***
+
+**2️⃣ Microtasks Queue:**
+
+- Promise 관련 콜백이 들어감.
+- 예: fetch().then(...)
+- Microtasks Queue는 Callback Queue보다 우선순위가 높음. ⭐️⭐️⭐️
+- 즉, 이벤트 루프가 실행할 때 항상 먼저 비운 후, 그 다음에 Callback Queue를 확인함.
+
+반면, 데이터 페칭 작업이 완료됐을 때, 해당 이벤트 핸들러 함수의 동작순서를 살펴보자.  
+이 경우에는 이벤트 핸들러가 콜백 큐에 들어가지 않고, Microtasks queue에 들어간다.
+
+<div className="-mx-2 flex flex-wrap overflow-hidden xl:-mx-2">
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Abstraction](/static/images/async/async(2)-7.png)
+  </div>
+  <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
+    ![Abstraction](/static/images/async/async(2)-8.png)
+  </div>
+</div>
+
+이때, Microtasks Queue는 Callback Queue보다 우선순위가 높기 때문에, 콜백 큐에 실행 준비가 완료된 함수들이 있더라도 Microtasks에 해당하는 이벤트 핸들러 함수들이 더 먼저 실행된다!!
+
+<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
+  ![Abstraction](/static/images/async/async(2)-9.png)
+</div>
+
+---
+
+### 3. 이벤트 루프(Event Loop)의 역할
+
+1. Call Stack을 확인 → 비어있으면(= 현재 실행 중 코드가 없음) 대기열에서 다음 콜백을 실행.
+2. Microtasks Queue → Callback Queue 순서로 콜백을 가져와 실행.
+3. 한 번의 순환을 Event Loop Tick이라고 부름.
+   👉 이 메커니즘 덕분에 자바스크립트는 싱글 스레드지만 논블로킹 방식으로 동작할 수 있음.
+
+---
+
+### 4. 중요한 특징
+
+- 타이머 지연 시간 보장 X
+  - ex. setTimeout(fn, 5000) → 최소 5초 뒤 실행이지만, Queue에 다른 작업이 많으면 실제 실행은 6초, 7초 뒤일 수도 있음.
+
+- 엄밀히 말하면 DOM 이벤트 자체는 비동기 동작이 아니지만, 여전히 Callback Queue 사용
+  - 이벤트는 사용자의 입력(클릭, 키보드 입력 등)이나 브라우저의 상태 변화(로드 완료 등)에 의해 "발생"하는 것일 뿐, 자바스크립트 코드가 어떤 작업을 비동기적으로 요청해서 생기는 것이 아님.
+  - 즉, setTimeout이나 fetch처럼 명시적으로 비동기 요청을 보내고 결과를 기다리는 것과는 다르다.
+    - 그런데 왜 비동기처럼 보일까? => 콜백 실행 메커니즘 때문...
+
+    - 우리가 addEventListener로 등록한 함수는 곧바로 실행되지 않고, 이벤트가 발생할 때 Web APIs 영역에서 감지 → 콜백 큐(Callback Queue)로 전달됩니다. 이벤트 루프가 콜스택(Call Stack)이 비었을 때, 그 콜백을 스택으로 옮겨 실행합니다.
+
+    - 따라서 “이벤트 발생 → 콜백이 바로 실행”이 아니라, “이벤트 발생 → 콜백 큐 대기 → 이벤트 루프 → 실행” 과정을 거친다. 그래서 동작 방식이 마치 비동기처럼 보이는 것!
+
+- Microtasks가 Callback Queue를 굶길 수 있음(Starvation)
+  - Promise 체이닝에서 무한히 마이크로태스크를 추가하면, 일반 콜백이 실행되지 못할 수도 있음.
+
+---
+
+### 📝 요약
+
+- 자바스크립트는 싱글 스레드로 한 번에 하나의 작업만 처리 가능한 엔진을 가지고 있음에도 불구하고,
+
+- Web APIs envrionment + Callback Queue + Microtasks Queue + Event Loop 조합을 통해 비동기, 논블로킹 환경 제공할 수 있다.
+
+- 실행 우선순위: Microtasks Queue (Promises) > Callback Queue (DOM events, timers)
+
+- 자바스크립트 언어 자체는 시간 개념이 없다. 비동기 로직들은 엔진에서 일어나는 것이 아닌, 오직 런타임과 이벤트 루프가 orchestration(조율) 역할을 하면서 실행 시점과 순서가 조정되기 때문이다.
