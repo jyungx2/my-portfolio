@@ -3,7 +3,7 @@ title: 'Object-Oriented Programming (2)'
 date: '2024-09-23'
 tags: ['javascript', 'oop']
 draft: false
-summary:
+summary: '전통적인 OOP는 Java, C++, Python 등 클래스 기반 언어에서, 설계도(Class)로부터 속성과 메서드가 복사(copy) 되어 인스턴스가 만들어지는 방식이다. 반면, JavaScript OOP는 프로토타입(prototype) 기반으로, 객체가 다른 객체(프로토타입)에 연결(link) 되어 속성과 메서드를 위임(delegate) 받아 사용하는 구조다. 즉, JS의 상속은 복사가 아닌 “위임(Delegation)”이며, class 문법 역시 기존 prototype 시스템을 보기 좋게 표현한 문법적 설탕에 불과하다. 결국 JS의 모든 OOP 방식(생성자 함수, ES6 class, Object.create)은 프로토타입 상속(prototypal inheritance) 위에서 동작하며, 추상화·캡슐화·상속·다형성의 OOP 원리를 그대로 따른다.'
 ---
 
 ## | Classical OOP vs JavaScript OOP
@@ -54,7 +54,7 @@ summary:
 
 ---
 
-### OOP in JS: prototypes
+### 2. OOP in JS: prototypes
 
 <div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-full xl:px-2">
   ![Prototypes](/static/images/oop/oop(2)-prototypes.png)
@@ -97,7 +97,7 @@ summary:
 
 ---
 
-**그래서 이 프로토타입을 어떻게 만들 수 있냐?**  
+##❓ 그래서 이 프로토타입을 어떻게 만들 수 있냐?
 **실제로 자바스크립트 언어로 어떻게 OOP를 구현할 수 있을까?**  
 => 총 3가지 방법이 있다.
 
