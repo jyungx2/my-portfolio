@@ -3,7 +3,7 @@ const siteMetadata = {
   title: "Jiyoung's Portfolio",
   author: '이지영',
   headerTitle: 'Jiyoung Lee',
-  description: '배움을 멈추지 않고 스스로 성장할 줄 아는 프론트엔드 웹 개발자입니다.',
+  description: '배움을 멈추지 않고 스스로 성장할 줄 아는 프론트엔드 웹 개발자 이지영입니다.',
   language: 'ko-KR',
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app', // ✅ 배포 후 수정
