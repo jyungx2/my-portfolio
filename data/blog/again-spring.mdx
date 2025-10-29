@@ -25,6 +25,8 @@ summary: 친환경 제품 전문 쇼핑몰 ‘자연상점’을 참고하여 �
 
 #### 🖥️ 배포 도구: Netlify [move to site](https://again-spring-jy.netlify.app)
 
+#### 🎥[시연 영상](https://drive.google.com/file/d/10B2M8rt8dXfDkSJ16ssPAHSaCW2nvQAD/view?usp=sharing)
+
 - **구현 방식** : React 기반 CSR 방식의 전형적인 쇼핑몰 구조
 
 - **프로젝트 개요** : 친환경 제품 전문 쇼핑몰 ‘자연상점’을 참고하여 제작한 ‘다시봄’은 지속 가능한 소비를 촉진하고, “다시 지구에 봄이 오길 바란다”는 의미를 담아 기획한 친환경 쇼핑몰 웹사이트입니다. 전형적인 이커머스 플랫폼의 구조를 기반으로, 메인 홈 · 상품 목록 · 상세 페이지 · 장바구니 · 주문/결제 · 위시리스트 · 후기/Q&A 등 기본적인 쇼핑몰 기능을 충실히 구현했습니다.
@@ -38,16 +40,15 @@ summary: 친환경 제품 전문 쇼핑몰 ‘자연상점’을 참고하여 �
 
 ---
 
-## 기여 내용
+## 🚀 핵심 기여 내용
 
-- 이메일·비밀번호 로그인과 카카오 OAuth 2.0 로그인 구현으로 인증 방식 다변화
-- JWT 기반 액세스·리프레시 토큰 구조 적용 및 axios 인터셉터로 자동 토큰 갱신 처리
-- Zustand의 `persist.setOptions()`로 autoLogin 여부에 따른 스토리지 분기 처리 구현
-- 전역 Tailwind 설정(`tailwind.config.js`)을 통한 폰트·컬러 시스템 정의 및 UI 일관성 확보
-- Vite 내 경로 alias(`@components`, `@hooks` 등) 설정으로 유지보수성 및 협업 효율 향상
-- 인증되지 않은 사용자를 차단하는 `ProtectedRoutes` 컴포넌트 구현으로 보안성 강화
-- Zustand 기반 장바구니 로직을 React Query로 리팩토링하여 데이터 캐싱 및 구조 최적화
-- PortOne 결제 API 연동을 통해 이니시스, 카카오페이 등 다양한 결제 수단을 지원하는 결제 기능 구현
+- 로그인·회원가입 흐름 및 사용자 세션 관리를 클라이언트 단에서 구현하기 위해 JWT 기반 인증 구조를 설계하여 브라우저 Storage(SessionStorage)와 Zustand 전역 상태를 연동
+- OAuth 2.0 인증 코드 플로우를 활용해 카카오 소셜 로그인 기능을 구현하고, Zustand 전역 상태와 Storage를 연동하여 로그인 상태 유지 및 세션 관리 로직 구축
+- JWT 기반 Access·Refresh Token 구조를 직접 설계하고, axios 인터셉터로 토큰 만료 시 자동 갱신 로직을 구현하여 UX 향상 및 보안 이슈 방지
+- Zustand persist.setOptions()를 활용해 autoLogin 여부에 따른 로컬/세션 스토리지 분기 처리 로직 구현
+- TailwindCSS 전역 테마 시스템을 정의하여 폰트·컬러·레이아웃의 UI 일관성 및 스타일링 효율성 확보
+- 인증되지 않은 사용자의 접근을 차단하기 위해 Protected Routes 컴포넌트를 구현하여 보안성 강화
+- 불필요한 리렌더링과 중복 API 호출을 최소화하기 위해 Zustand 기반 장바구니 로직을 React Query로 리팩토링하여 데이터 캐싱 및 서버 동기화 적용
 
 ---
 
