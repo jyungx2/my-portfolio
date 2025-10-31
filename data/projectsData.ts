@@ -8,7 +8,7 @@ interface Project {
 const projectsData: Project[] = [
   {
     title: 'AI 기반 기업 컬쳐핏 분석 플랫폼 ’Fitin’',
-    description: `인사담당자의 설문 응답 데이터를 기반으로, 군집화 알고리즘을 적용해 채용 성향을 분석하고, Chart.js를 이용해 결과를 시각화하여 제공하는 웹 서비스입니다.`,
+    description: `인사담당자의 설문 응답 데이터를 K-means 알고리즘으로 군집화하여 선호 인재상과 채용 성향을 분석하고, 이를 시각화하여 차트 형태의 결과로 제공하는 AI 기반 웹서비스입니다.`,
     imgSrc: '/static/images/fitin/fitin-main.png',
     href: '/blog/fitin',
   },
